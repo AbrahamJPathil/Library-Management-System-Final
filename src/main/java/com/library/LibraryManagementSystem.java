@@ -6,6 +6,7 @@ import com.library.dao.*;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.Side;
@@ -48,10 +49,11 @@ public class LibraryManagementSystem extends Application {
         rootLayout = new BorderPane();
         Scene scene = new Scene(rootLayout, 1100, 750);
         try {
-            String cssPath = getClass().getResource("/com/library/style.css").toExternalForm();
+            // Assuming style.css is in src/main/resources/com/library/
+            String cssPath = getClass().getResource("style.css").toExternalForm();
             scene.getStylesheets().add(cssPath);
         } catch (Exception e) {
-            System.err.println("Could not load CSS: " + e.getMessage());
+            System.err.println("Could not load CSS file: " + e.getMessage());
         }
         primaryStage.setScene(scene);
         primaryStage.show();
@@ -67,11 +69,10 @@ public class LibraryManagementSystem extends Application {
         title.setFont(Font.font("Arial", FontWeight.BOLD, 24));
         grid.add(title, 0, 0, 2, 1);
         grid.add(new Label("Email:"), 0, 1);
-        TextField emailField = new TextField("student@library.com"); // Pre-fill for convenience
+        TextField emailField = new TextField();
         grid.add(emailField, 1, 1);
         grid.add(new Label("Password:"), 0, 2);
         PasswordField passwordField = new PasswordField();
-        passwordField.setText("student"); // Pre-fill for convenience
         grid.add(passwordField, 1, 2);
         Button loginBtn = new Button("Sign in");
         loginBtn.setDefaultButton(true);
@@ -101,13 +102,12 @@ public class LibraryManagementSystem extends Application {
     }
 
     private void showRegistrationScreen() {
-        // This method is unchanged from the previous version
         GridPane grid = new GridPane();
         grid.setAlignment(Pos.CENTER);
         grid.setHgap(10);
         grid.setVgap(10);
         grid.setPadding(new Insets(25));
-        Label title = new Label("Create New Account");
+        Label title = new Label("Create New Student Account");
         title.setFont(Font.font("Arial", FontWeight.BOLD, 20));
         grid.add(title, 0, 0, 2, 1);
         grid.add(new Label("Full Name:"), 0, 1);
@@ -119,17 +119,15 @@ public class LibraryManagementSystem extends Application {
         grid.add(new Label("Password:"), 0, 3);
         PasswordField passwordField = new PasswordField();
         grid.add(passwordField, 1, 3);
-        grid.add(new Label("Role:"), 0, 4);
-        ComboBox<String> roleComboBox = new ComboBox<>(FXCollections.observableArrayList("Student", "Administrator"));
-        roleComboBox.setValue("Student");
-        grid.add(roleComboBox, 1, 4);
+        
         Button registerBtn = new Button("Register");
         registerBtn.setOnAction(e -> {
             if (nameField.getText().isEmpty() || emailField.getText().isEmpty() || passwordField.getText().isEmpty()) {
                 showAlert(Alert.AlertType.ERROR, "Form Error", "All fields are required.");
                 return;
             }
-            User newUser = new User(nameField.getText(), emailField.getText(), passwordField.getText(), roleComboBox.getValue(), LocalDate.now());
+            // **FIX**: Hardcode the role to "Student" for public registration
+            User newUser = new User(nameField.getText(), emailField.getText(), passwordField.getText(), "Student", LocalDate.now());
             try {
                 userDao.addUser(newUser);
                 showAlert(Alert.AlertType.INFORMATION, "Success", "Registration successful! Please log in.");
@@ -142,7 +140,7 @@ public class LibraryManagementSystem extends Application {
         backBtn.setOnAction(e -> showLoginScreen());
         HBox buttonBox = new HBox(10, backBtn, registerBtn);
         buttonBox.setAlignment(Pos.CENTER_RIGHT);
-        grid.add(buttonBox, 1, 5);
+        grid.add(buttonBox, 1, 4); // Adjusted row index
         rootLayout.setCenter(grid);
     }
 
@@ -218,9 +216,7 @@ public class LibraryManagementSystem extends Application {
         Label title = new Label("Books Currently Issued to Me");
         title.setFont(Font.font("Arial", FontWeight.BOLD, 16));
         
-        // Filter the list to show only active transactions
-        ObservableList<Transaction> activeTransactions = FXCollections.observableArrayList();
-        userTransactions.forEach(t -> { if(!t.isReturned()) activeTransactions.add(t); });
+        FilteredList<Transaction> activeTransactions = new FilteredList<>(userTransactions, t -> !t.isReturned());
         
         TableView<Transaction> booksTable = new TableView<>(activeTransactions);
         VBox.setVgrow(booksTable, Priority.ALWAYS);
@@ -244,15 +240,16 @@ public class LibraryManagementSystem extends Application {
         Label title = new Label("My Complete Borrowing History");
         title.setFont(Font.font("Arial", FontWeight.BOLD, 16));
         
-        // Use the full list of this user's transactions
-        TableView<Transaction> historyTable = new TableView<>(userTransactions);
+        FilteredList<Transaction> returnedTransactions = new FilteredList<>(userTransactions, Transaction::isReturned);
+        
+        TableView<Transaction> historyTable = new TableView<>(returnedTransactions);
         VBox.setVgrow(historyTable, Priority.ALWAYS);
         
         TableColumn<Transaction, String> bookCol = new TableColumn<>("Book Title");
         bookCol.setCellValueFactory(new PropertyValueFactory<>("bookTitle"));
         TableColumn<Transaction, LocalDate> issueCol = new TableColumn<>("Issue Date");
         issueCol.setCellValueFactory(new PropertyValueFactory<>("issueDate"));
-        TableColumn<Transaction, Boolean> returnedCol = new TableColumn<>("Was Returned");
+        TableColumn<Transaction, Boolean> returnedCol = new TableColumn<>("Returned");
         returnedCol.setCellValueFactory(new PropertyValueFactory<>("returned"));
         
         historyTable.getColumns().addAll(bookCol, issueCol, returnedCol);
@@ -260,7 +257,7 @@ public class LibraryManagementSystem extends Application {
         return content;
     }
     
-    // --- SHARED UI COMPONENTS (UNCHANGED) ---
+    // --- ADMIN UI COMPONENTS (UNCHANGED) ---
     private VBox createUsersContent() {
         VBox content = new VBox(10);
         content.setPadding(new Insets(10));
@@ -612,3 +609,5 @@ public class LibraryManagementSystem extends Application {
         launch(args);
     }
 }
+
+
