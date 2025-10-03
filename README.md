@@ -9,3 +9,6 @@ How to use?
    (This script will also create default users: admin@library.com [pass: admin] and student@library.com [pass: student])
 
 4. Open a terminal in this directory and run the final command:    "mvn clean javafx:run"
+
+
+NB (Update as of Oct 3 10:51 PM IST) --> added another sql script that creates entries with dummy entries, feel free to use that will testing my application
