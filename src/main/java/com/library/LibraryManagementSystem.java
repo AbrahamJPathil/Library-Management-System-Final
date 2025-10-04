@@ -49,7 +49,6 @@ public class LibraryManagementSystem extends Application {
         rootLayout = new BorderPane();
         Scene scene = new Scene(rootLayout, 1100, 750);
         try {
-            // Assuming style.css is in src/main/resources/com/library/
             String cssPath = getClass().getResource("style.css").toExternalForm();
             scene.getStylesheets().add(cssPath);
         } catch (Exception e) {
@@ -126,7 +125,6 @@ public class LibraryManagementSystem extends Application {
                 showAlert(Alert.AlertType.ERROR, "Form Error", "All fields are required.");
                 return;
             }
-            // **FIX**: Hardcode the role to "Student" for public registration
             User newUser = new User(nameField.getText(), emailField.getText(), passwordField.getText(), "Student", LocalDate.now());
             try {
                 userDao.addUser(newUser);
@@ -140,11 +138,10 @@ public class LibraryManagementSystem extends Application {
         backBtn.setOnAction(e -> showLoginScreen());
         HBox buttonBox = new HBox(10, backBtn, registerBtn);
         buttonBox.setAlignment(Pos.CENTER_RIGHT);
-        grid.add(buttonBox, 1, 4); // Adjusted row index
+        grid.add(buttonBox, 1, 4);
         rootLayout.setCenter(grid);
     }
 
-    // --- ADMIN DASHBOARD ---
     private void showAdminDashboard() {
         BorderPane dashboard = new BorderPane();
         dashboard.setTop(createHeader("Admin Dashboard"));
@@ -167,7 +164,6 @@ public class LibraryManagementSystem extends Application {
         transactions.setAll(transactionDao.getAllTransactions());
     }
 
-    // --- STUDENT DASHBOARD ---
     private void showStudentDashboard() {
         BorderPane dashboard = new BorderPane();
         dashboard.setTop(createHeader("Student Dashboard"));
@@ -184,17 +180,15 @@ public class LibraryManagementSystem extends Application {
     }
 
     private void refreshAllStudentData() {
-        books.setAll(bookDao.getAllBooks()); // For browsing all books
+        books.setAll(bookDao.getAllBooks());
         userTransactions.setAll(transactionDao.getTransactionsForUser(loggedInUser.getEmail(), false));
     }
 
     private VBox createStudentBrowseBooksContent() {
         VBox content = new VBox(10);
         content.setPadding(new Insets(10));
-        
         TableView<Book> booksTable = new TableView<>(books);
         VBox.setVgrow(booksTable, Priority.ALWAYS);
-
         TableColumn<Book, String> titleCol = new TableColumn<>("Title");
         titleCol.setCellValueFactory(new PropertyValueFactory<>("title"));
         TableColumn<Book, String> authorCol = new TableColumn<>("Author");
@@ -203,7 +197,6 @@ public class LibraryManagementSystem extends Application {
         genreCol.setCellValueFactory(new PropertyValueFactory<>("genre"));
         TableColumn<Book, Boolean> availableCol = new TableColumn<>("Available");
         availableCol.setCellValueFactory(new PropertyValueFactory<>("available"));
-
         booksTable.getColumns().addAll(titleCol, authorCol, genreCol, availableCol);
         content.getChildren().add(booksTable);
         return content;
@@ -212,22 +205,17 @@ public class LibraryManagementSystem extends Application {
     private VBox createStudentMyBooksContent() {
         VBox content = new VBox(10);
         content.setPadding(new Insets(10));
-        
         Label title = new Label("Books Currently Issued to Me");
         title.setFont(Font.font("Arial", FontWeight.BOLD, 16));
-        
         FilteredList<Transaction> activeTransactions = new FilteredList<>(userTransactions, t -> !t.isReturned());
-        
         TableView<Transaction> booksTable = new TableView<>(activeTransactions);
         VBox.setVgrow(booksTable, Priority.ALWAYS);
-
         TableColumn<Transaction, String> bookCol = new TableColumn<>("Book Title");
         bookCol.setCellValueFactory(new PropertyValueFactory<>("bookTitle"));
         TableColumn<Transaction, LocalDate> issueCol = new TableColumn<>("Issue Date");
         issueCol.setCellValueFactory(new PropertyValueFactory<>("issueDate"));
         TableColumn<Transaction, LocalDate> dueCol = new TableColumn<>("Due Date");
         dueCol.setCellValueFactory(new PropertyValueFactory<>("dueDate"));
-        
         booksTable.getColumns().addAll(bookCol, issueCol, dueCol);
         content.getChildren().addAll(title, booksTable);
         return content;
@@ -236,28 +224,22 @@ public class LibraryManagementSystem extends Application {
     private VBox createStudentHistoryContent() {
         VBox content = new VBox(10);
         content.setPadding(new Insets(10));
-
         Label title = new Label("My Complete Borrowing History");
         title.setFont(Font.font("Arial", FontWeight.BOLD, 16));
-        
         FilteredList<Transaction> returnedTransactions = new FilteredList<>(userTransactions, Transaction::isReturned);
-        
         TableView<Transaction> historyTable = new TableView<>(returnedTransactions);
         VBox.setVgrow(historyTable, Priority.ALWAYS);
-        
         TableColumn<Transaction, String> bookCol = new TableColumn<>("Book Title");
         bookCol.setCellValueFactory(new PropertyValueFactory<>("bookTitle"));
         TableColumn<Transaction, LocalDate> issueCol = new TableColumn<>("Issue Date");
         issueCol.setCellValueFactory(new PropertyValueFactory<>("issueDate"));
         TableColumn<Transaction, Boolean> returnedCol = new TableColumn<>("Returned");
         returnedCol.setCellValueFactory(new PropertyValueFactory<>("returned"));
-        
         historyTable.getColumns().addAll(bookCol, issueCol, returnedCol);
         content.getChildren().addAll(title, historyTable);
         return content;
     }
     
-    // --- ADMIN UI COMPONENTS (UNCHANGED) ---
     private VBox createUsersContent() {
         VBox content = new VBox(10);
         content.setPadding(new Insets(10));
@@ -279,6 +261,7 @@ public class LibraryManagementSystem extends Application {
         content.getChildren().addAll(addUserBtn, usersTable);
         return content;
     }
+
     private VBox createBookManagementContent() {
         VBox content = new VBox(10);
         content.setPadding(new Insets(10));
@@ -302,6 +285,7 @@ public class LibraryManagementSystem extends Application {
         content.getChildren().addAll(addBookBtn, booksTable);
         return content;
     }
+
     private VBox createTransactionsContent() {
         VBox content = new VBox(10);
         content.setPadding(new Insets(10));
@@ -345,6 +329,7 @@ public class LibraryManagementSystem extends Application {
         content.getChildren().addAll(issuePane, new Label("All Transactions"), transactionsTable);
         return content;
     }
+
     private TableColumn<Book, Void> createBookActionColumn() {
         TableColumn<Book, Void> actionCol = new TableColumn<>("Actions");
         actionCol.setCellFactory(param -> new TableCell<>() {
@@ -377,6 +362,7 @@ public class LibraryManagementSystem extends Application {
         });
         return actionCol;
     }
+
     private TableColumn<User, Void> createUserActionColumn() {
         TableColumn<User, Void> actionCol = new TableColumn<>("Actions");
         actionCol.setCellFactory(param -> new TableCell<>() {
@@ -386,13 +372,23 @@ public class LibraryManagementSystem extends Application {
                 editBtn.setStyle("-fx-background-color: #007BFF; -fx-text-fill: white;");
                 deleteBtn.setStyle("-fx-background-color: #DC3545; -fx-text-fill: white;");
                 editBtn.setOnAction(event -> showEditUserDialog(getTableView().getItems().get(getIndex())));
+                
+                // **FIX**: Add safety check before deleting a user
                 deleteBtn.setOnAction(event -> {
                     User user = getTableView().getItems().get(getIndex());
                     if (user.getEmail().equals(loggedInUser.getEmail())) {
                         showAlert(Alert.AlertType.WARNING, "Action Denied", "You cannot delete your own account.");
                         return;
                     }
-                    Alert confirm = new Alert(Alert.AlertType.CONFIRMATION, "Delete " + user.getName() + "?", ButtonType.YES, ButtonType.NO);
+
+                    // The new safety check
+                    if (userDao.hasActiveTransactions(user.getEmail())) {
+                        showAlert(Alert.AlertType.ERROR, "Deletion Failed", "Cannot delete user. This user has outstanding books that must be returned first.");
+                        return;
+                    }
+
+                    // If the check passes, proceed with confirmation
+                    Alert confirm = new Alert(Alert.AlertType.CONFIRMATION, "Delete " + user.getName() + "? This action is permanent.", ButtonType.YES, ButtonType.NO);
                     confirm.showAndWait().ifPresent(response -> {
                         if (response == ButtonType.YES) {
                             try {
@@ -413,6 +409,7 @@ public class LibraryManagementSystem extends Application {
         });
         return actionCol;
     }
+    
     private TableColumn<Transaction, Void> createTransactionActionColumn() {
         TableColumn<Transaction, Void> actionCol = new TableColumn<>("Action");
         actionCol.setCellFactory(param -> new TableCell<>() {
@@ -442,6 +439,7 @@ public class LibraryManagementSystem extends Application {
         });
         return actionCol;
     }
+
     private void showAddBookDialog() {
         Dialog<Book> dialog = createBookDialog(null);
         dialog.showAndWait().ifPresent(book -> {
@@ -453,6 +451,7 @@ public class LibraryManagementSystem extends Application {
             }
         });
     }
+
     private void showEditBookDialog(Book bookToEdit) {
         Dialog<Book> dialog = createBookDialog(bookToEdit);
         dialog.showAndWait().ifPresent(book -> {
@@ -464,6 +463,7 @@ public class LibraryManagementSystem extends Application {
             }
         });
     }
+
     private Dialog<Book> createBookDialog(Book book) {
         Dialog<Book> dialog = new Dialog<>();
         dialog.setTitle(book == null ? "Add New Book" : "Edit Book");
@@ -505,6 +505,7 @@ public class LibraryManagementSystem extends Application {
         });
         return dialog;
     }
+
     private void showAddUserDialog() {
         Dialog<User> dialog = createUserDialog(null);
         dialog.showAndWait().ifPresent(user -> {
@@ -516,6 +517,7 @@ public class LibraryManagementSystem extends Application {
             }
         });
     }
+
     private void showEditUserDialog(User userToEdit) {
         Dialog<User> dialog = createUserDialog(userToEdit);
         dialog.showAndWait().ifPresent(user -> {
@@ -527,6 +529,7 @@ public class LibraryManagementSystem extends Application {
             }
         });
     }
+
     private Dialog<User> createUserDialog(User user) {
         Dialog<User> dialog = new Dialog<>();
         dialog.setTitle(user == null ? "Add New User" : "Edit User");
@@ -570,6 +573,7 @@ public class LibraryManagementSystem extends Application {
         });
         return dialog;
     }
+
     private HBox createHeader(String title) {
         HBox header = new HBox();
         header.setPadding(new Insets(15));
@@ -592,11 +596,13 @@ public class LibraryManagementSystem extends Application {
         header.getChildren().addAll(titleLabel, spacer, userButton);
         return header;
     }
+
     private VBox createAdminDashboardContent() {
         VBox content = new VBox(20, new Label("Welcome to the Admin Dashboard. Use the tabs to manage the library."));
         content.setPadding(new Insets(10));
         return content;
     }
+
     private void showAlert(Alert.AlertType alertType, String title, String message) {
         Alert alert = new Alert(alertType);
         alert.setTitle(title);
@@ -605,9 +611,9 @@ public class LibraryManagementSystem extends Application {
         alert.initOwner(primaryStage);
         alert.showAndWait();
     }
+    
     public static void main(String[] args) {
         launch(args);
     }
 }
-
 
