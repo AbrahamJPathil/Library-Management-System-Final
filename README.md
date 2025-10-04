@@ -11,4 +11,4 @@ How to use?
 4. Open a terminal in this directory and run the final command:    "mvn clean javafx:run"
 
 
-NB (Update as of Oct 3 10:51 PM IST) --> added another sql script that creates entries with dummy entries, feel free to use that will testing my application
+NB (Update as of Oct 3 10:51 PM IST) --> added another sql script that creates entries with dummy data, feel free to use that while testing my application
