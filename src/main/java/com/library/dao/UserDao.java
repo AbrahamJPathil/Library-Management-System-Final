@@ -48,9 +48,37 @@ public class UserDao {
         }
     }
     
-    public void deleteUser(String email) throws SQLException {
-        String sql = "DELETE FROM users WHERE email = ?";
+    /**
+     * **NEW METHOD**: Checks if a user has any books currently checked out (not returned).
+     * @param userEmail The email of the user to check.
+     * @return true if the user has active transactions, false otherwise.
+     */
+    public boolean hasActiveTransactions(String userEmail) {
+        String sql = "SELECT COUNT(*) FROM transactions WHERE user_email = ? AND is_returned = false";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, userEmail);
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public void deleteUser(String email) throws SQLException {
+        // Before deleting a user, we must handle their transactions to avoid foreign key errors.
+        // Option 1: Delete their transactions (could lose history)
+        // Option 2 (Better): Set user_email to NULL in transactions. This preserves history.
+        String updateTransactionsSql = "UPDATE transactions SET user_email = NULL WHERE user_email = ?";
+        try(PreparedStatement pstmt = connection.prepareStatement(updateTransactionsSql)) {
+            pstmt.setString(1, email);
+            pstmt.executeUpdate();
+        }
+
+        String deleteUserSql = "DELETE FROM users WHERE email = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(deleteUserSql)) {
             pstmt.setString(1, email);
             pstmt.executeUpdate();
         }
@@ -67,3 +95,4 @@ public class UserDao {
         return userList;
     }
 }
+
